@@ -1,0 +1,6 @@
+#cloud-config
+cloud_config_modules:
+- package-update-upgrade-install
+
+packages:
+- nmap-ncat

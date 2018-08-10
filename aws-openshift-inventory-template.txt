@@ -1,0 +1,94 @@
+[OSEv3:children]
+masters
+etcd
+nodes
+
+[OSEv3:vars]
+debug_level=2
+ansible_user=ec2-user
+ansible_become=yes
+openshift_deployment_type=openshift-enterprise
+openshift_release=v3.9
+openshift_master_api_port=443
+openshift_master_console_port=443
+openshift_portal_net=172.30.0.0/16
+os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
+openshift_master_cluster_method=native
+container_runtime_docker_storage_setup_device=/dev/nvme1n1
+openshift_node_local_quota_per_fsgroup=512Mi
+osm_use_cockpit=true
+openshift_hostname_check=false
+openshift_examples_modify_imagestreams=true
+oreg_url=registry.access.redhat.com/openshift3/ose-$${component}:$${version}
+
+openshift_hosted_router_selector='region=infra'
+openshift_hosted_router_replicas=3
+
+# UPDATE TO CORRECT IDENTITY PROVIDER
+openshift_master_identity_providers=[{'name': 'my_allow_provider', 'challenge': 'true', 'login': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
+
+# UPDATE USING VALUES FOUND IN awscli env vars or ~/playbooks/var/main.yaml
+# SEE ALSO FILE ~/.ssh/config-< CLUSTERID >.< DNS_DOMAIN >-urls
+openshift_master_default_subdomain=apps.${clusterid}.${dns_domain}
+openshift_master_cluster_hostname=master.${clusterid}.${dns_domain}
+openshift_master_cluster_public_hostname=master.${clusterid}.${dns_domain}
+
+# UPDATE USING VALUES FOUND IN FILE ~/.ssh/config-< CLUSTERID >.< DNS_DOMAIN >-cpk
+openshift_cloudprovider_kind=aws
+openshift_clusterid=${clusterid}
+openshift_cloudprovider_aws_access_key=${admin_access_key}
+openshift_cloudprovider_aws_secret_key=${admin_secret_key}
+
+# UPDATE USING VALUES FOUND IN FILE ~/.ssh/config-< CLUSTERID >.< DNS_DOMAIN >-s3
+openshift_hosted_manage_registry=true
+openshift_hosted_registry_storage_kind=object
+openshift_hosted_registry_storage_provider=s3
+openshift_hosted_registry_storage_s3_accesskey=${s3_access_key}
+openshift_hosted_registry_storage_s3_secretkey=${s3_secret_key}
+openshift_hosted_registry_storage_s3_bucket=${s3_bucket}
+openshift_hosted_registry_storage_s3_region=${region}
+openshift_hosted_registry_storage_s3_chunksize=26214400
+openshift_hosted_registry_storage_s3_rootdirectory=/registry
+openshift_hosted_registry_pullthrough=true
+openshift_hosted_registry_acceptschema2=true
+openshift_hosted_registry_enforcequota=true
+openshift_hosted_registry_replicas=3
+openshift_hosted_registry_selector='region=infra'
+
+# Aggregated logging
+openshift_logging_install_logging=false
+#openshift_logging_storage_kind=dynamic
+#openshift_logging_storage_volume_size=25Gi
+#openshift_logging_es_cluster_size=3
+
+# Metrics
+openshift_metrics_install_metrics=true
+openshift_metrics_storage_kind=dynamic
+openshift_metrics_storage_volume_size=25Gi
+
+openshift_enable_service_catalog=false
+
+template_service_broker_install=false
+
+# UPDATE USING HOSTS FOUND IN FILE ~/.ssh/config-< CLUSTERID >.< DNS_DOMAIN >-hosts
+[masters]
+${master1_dns} openshift_node_labels="{'region': 'master'}"
+${master2_dns} openshift_node_labels="{'region': 'master'}"
+${master3_dns} openshift_node_labels="{'region': 'master'}"
+
+[etcd]
+
+[etcd:children]
+masters
+
+# UPDATE USING HOSTS FOUND IN FILE ~/.ssh/config-< CLUSTERID >.< DNS_DOMAIN >-hosts
+[nodes]
+${node1_dns} openshift_node_labels="{'region': 'apps'}"
+${node2_dns} openshift_node_labels="{'region': 'apps'}"
+${node3_dns} openshift_node_labels="{'region': 'apps'}"
+${infra1_dns} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+${infra2_dns} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+${infra3_dns} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+
+[nodes:children]
+masters

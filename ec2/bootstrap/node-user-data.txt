@@ -1,0 +1,30 @@
+#cloud-config
+cloud_config_modules:
+- package-update-upgrade-install
+- disk_setup
+- mounts
+- cc_write_files
+
+packages:
+- lvm2
+
+write_files:
+- content: |
+    STORAGE_DRIVER=overlay2
+    DEVS=/dev/xvdb
+    VG=dockervg
+    CONTAINER_ROOT_LV_NAME=dockerlv
+    CONTAINER_ROOT_LV_MOUNT_PATH=/var/lib/docker
+    CONTAINER_ROOT_LV_SIZE=100%FREE
+  path: "/etc/sysconfig/docker-storage-setup"
+  permissions: "0644"
+  owner: "root"
+
+fs_setup:
+- label: ocp_emptydir
+  filesystem: xfs
+  device: /dev/xvdc
+  partition: auto
+
+mounts:
+- [ "LABEL=ocp_emptydir", "/var/lib/origin/openshift.local.volumes", xfs, "defaults,gquota" ]
